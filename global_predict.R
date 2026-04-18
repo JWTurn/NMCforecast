@@ -3,6 +3,7 @@ repos <- c("https://predictiveecology.r-universe.dev", getOption("repos"))
 source("https://raw.githubusercontent.com/PredictiveEcology/pemisc/refs/heads/development/R/getOrUpdatePkg.R")
 getOrUpdatePkg(c("Require", "SpaDES.project"), c("1.0.1.9024", "1.0.1.9000")) # only install/update if required
 #Require::Install("PredictiveEcology/SpaDES.core@development")
+#Require::Install("PredictiveEcology/reproducible@development")
 
 projPath = "~/git-local/NMCforecast"
 reproducibleInputsPath = "~/git-local/reproducibleInputs"
