@@ -67,28 +67,29 @@ out <- SpaDES.project::setupProject(
                                        destinationPath = 'inputs'),
   times = list(start = 2020, end = 2075),
 
-  studyAreaLarge = {
-    terra::buffer(studyArea, 5000)
-  },
+  studyAreaLarge = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1gW6DBurw2uBx5cAZLcmWd6qBD7eMEd-4/view?usp=share_link',
+                                            fun = 'terra::vect',
+                                            destinationPath = 'inputs'),
 
   studyAreaCalibration = studyAreaLarge,
 
   modelLand = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1EJ9QX-61YkL4X26RggNNw_xofzJnbbWm/view?usp=share_link',
                                        fun = 'terra::rast',
                                        destinationPath = 'outputs') |>
-    Cache(),
+    reproducible::Cache(),
 
 
   rasterToMatchLarge = {
     rtml <- modelLand[[1]]
     rtml[] <- 1
+    #rtml[] <- 1
     terra::mask(rtml, studyAreaLarge)
   },
 
   rasterToMatch_SSUD = rasterToMatchLarge,
 
   rasterToMatch = {
-    reproducible::postProcess(rasterToMatchLarge, cropTo = studyArea, maskTo = studyArea)
+    reproducible::postProcess(rasterToMatchLarge, cropTo = studyArea, maskTo = studyAreaLarge)
   },
 
   rasterToMatchCoarse = {
@@ -113,13 +114,13 @@ out <- SpaDES.project::setupProject(
   iSSAmodels = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1O_2_pP-9ZRqNqFxief1TIAcjDGdJTAfW/view?usp=share_link',
                                     fun = 'readRDS',
                                     destinationPath = 'outputs') |>
-      Cache(),
+    reproducible::Cache(),
 
 
-  studyAreaCaribou = studyArea
+  studyAreaCaribou = studyAreaLarge
   ,
 
-  studyArea_juris = list(NMC = studyArea),
+  studyArea_juris = list(NMC = studyAreaLarge),
   # reproducible::prepInputs(url = 'https://drive.google.com/file/d/1KcJ9oPTEsWYZAX4rHi2p84y0LjLhjtvJ/view?usp=share_link',
   #                                          fun = 'readRDS',
   #                                          destinationPath = 'outputs')
