@@ -65,6 +65,7 @@ out <- SpaDES.project::setupProject(
   studyArea = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1dAZ3bHtMdNk5X4Q9JvMtPzyAYB6N8X98/view?usp=share_link',
                                        fun = 'terra::vect',
                                        destinationPath = 'inputs'),
+
   times = list(start = 2020, end = 2075),
 
   studyAreaLarge = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1gW6DBurw2uBx5cAZLcmWd6qBD7eMEd-4/view?usp=share_link',
