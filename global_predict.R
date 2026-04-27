@@ -32,7 +32,7 @@ out <- SpaDES.project::setupProject(
               c("scfmDataPrep",
                 "scfmIgnition", "scfmEscape", "scfmSpread",
                 "scfmDiagnostics")),
-    "JWTurn/caribou_SSUD@main"
+    "JWTurn/caribou_SSUD@addYukon"
   ),
   params = list(
     .globals = list(
@@ -44,7 +44,8 @@ out <- SpaDES.project::setupProject(
       modelScale = "global",
       dataYear = 2020,
       sppEquivCol = "LandR",
-      normalizePDE = TRUE
+      normalizePDE = TRUE,
+      ecotype = 'northern_mountain'
 
     ),
     scfmDataPrep = list(
@@ -62,21 +63,23 @@ out <- SpaDES.project::setupProject(
                "PredictiveEcology/reproducible@development", "PredictiveEcology/LandR@development",
                "PredictiveEcology/SpaDES.core@development"),
 
-  studyArea = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1dAZ3bHtMdNk5X4Q9JvMtPzyAYB6N8X98/view?usp=share_link',
-                                       fun = 'terra::vect',
-                                       destinationPath = 'inputs'),
+  #studyAreaReporting = ,
 
   times = list(start = 2020, end = 2075),
 
   studyAreaLarge = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1gW6DBurw2uBx5cAZLcmWd6qBD7eMEd-4/view?usp=share_link',
                                             fun = 'terra::vect',
-                                            destinationPath = 'inputs'),
+                                            destinationPath = 'inputs') |>
+                    terra::project("EPSG:3978"),
+
+  studyArea = studyAreaLarge,
 
   studyAreaCalibration = studyAreaLarge,
 
   modelLand = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1EJ9QX-61YkL4X26RggNNw_xofzJnbbWm/view?usp=share_link',
                                        fun = 'terra::rast',
-                                       destinationPath = 'outputs') |>
+                                       destinationPath = 'outputs')  |>
+    terra::project("EPSG:3978")|>
     reproducible::Cache(),
 
 
@@ -90,7 +93,7 @@ out <- SpaDES.project::setupProject(
   rasterToMatch_SSUD = rasterToMatchLarge,
 
   rasterToMatch = {
-    reproducible::postProcess(rasterToMatchLarge, cropTo = studyArea, maskTo = studyAreaLarge)
+    reproducible::postProcess(rasterToMatchLarge, cropTo = studyAreaLarge, maskTo = studyAreaLarge)
   },
 
   rasterToMatchCoarse = {
@@ -118,7 +121,12 @@ out <- SpaDES.project::setupProject(
     reproducible::Cache(),
 
 
-  studyAreaCaribou = studyAreaLarge
+  studyAreaCaribou = {
+    sa <- reproducible::prepInputs(url = 'https://drive.google.com/file/d/11nFGKHw36Dtxjd5xS-nExuziOB26VRoK/view?usp=share_link',
+                                   fun = 'terra::vect',
+                                   destinationPath = 'inputs') |>
+          terra::project("EPSG:3978")
+    terra::fillHoles(sa, inverse = F)}
   ,
 
   studyArea_juris = list(NMC = studyAreaLarge),
