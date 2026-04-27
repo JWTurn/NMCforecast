@@ -1,0 +1,92 @@
+---
+title: "scfmSpread Manual"
+subtitle: "v.`r SpaDES.core::moduleMetadata(module = 'scfmSpread', path = '..')$version`"
+date: "Last updated: `r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: sandstone
+    number_sections: false
+    df_print: paged
+    keep_md: yes
+editor_options:
+  chunk_output_type: console
+  bibliography: citations/references_scfmSpread.bib
+link-citations: true
+always_allow_html: true
+---
+
+# scfmSpread Module
+
+<!-- the following are text references used in captions for LaTeX compatibility -->
+(ref:scfmSpread) *scfmSpread*
+
+```{r setup-scfmSpread, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = "hold") ## change to eval = TRUE if all chunks are to be evaluated
+
+dir.create("figures", showWarnings = FALSE)
+
+download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
+              destfile = "figures/markdownBadge.png",
+              mode = 'wb')
+```
+
+[![made-with-Markdown](figures/markdownBadge.png)](https://commonmark.org)
+
+<!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
+
+#### Authors:
+
+`r paste(as.character(SpaDES.core::moduleMetadata(module = "scfmSpread", path = '..')$authors), sep = ', ')`
+<!-- ideally separate authors with new lines, '\n' not working -->
+
+## Module Overview
+
+### Module summary
+
+Simulates wildfire spread on a landscape.
+
+### Module inputs and parameters
+
+Table \@ref(tab:moduleInputs-scfmSpread) shows the full list of module inputs.
+
+```{r moduleInputs-scfmSpread, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_inputs <- SpaDES.core::moduleInputs("scfmSpread", "..")
+knitr::kable(df_inputs,
+             caption = "List of (ref:scfmSpread) input objects and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+Table \@ref(tab:moduleParams-scfmSpread) shows the full list of module parameters.
+
+
+```{r moduleParams-scfmSpread, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_params <- SpaDES.core::moduleParams("scfmSpread", "..")
+knitr::kable(df_params, caption = "List of (ref:scfmSpread) parameters and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+### Module outputs
+
+Description of the module outputs (Table \@ref(tab:moduleOutputs-scfmSpread)).
+
+```{r moduleOutputs-scfmSpread, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_outputs <- SpaDES.core::moduleOutputs("scfmSpread", "..")
+knitr::kable(df_outputs, caption = "List of (ref:scfmSpread) outputs and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+### Links to other modules
+
+Intended to be run with the `scfm` suite of modules found at <https://github.com/PredictiveEcology/scfm>:
+
+- `ageModule` (optional)
+- `scfmDataPrep`
+- `scfmEscape`
+- `scfmIgnition`
+- `scfmSpread`
+
+### Getting help
+
+<https://github.com/PredictiveEcology/scfm/issues>

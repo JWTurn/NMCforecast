@@ -1,0 +1,93 @@
+---
+title: "scfmEscape Manual"
+subtitle: "v.`r SpaDES.core::moduleMetadata(module = 'scfmEscape', path = '..')$version`"
+date: "Last updated: `r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: true
+    toc_float: true
+    theme: sandstone
+    number_sections: false
+    df_print: paged
+    keep_md: yes
+editor_options:
+  chunk_output_type: console
+  bibliography: citations/references_scfmEscape.bib
+link-citations: true
+always_allow_html: true
+---
+
+# scfmEscape Module
+
+<!-- the following are text references used in captions for LaTeX compatibility -->
+(ref:scfmEscape) *scfmEscape*
+
+```{r setup-scfmEscape, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, results = "hold") ## change to eval = TRUE if all chunks are to be evaluated
+
+dir.create("figures", showWarnings = FALSE)
+
+download.file(url = "https://img.shields.io/badge/Made%20with-Markdown-1f425f.png",
+              destfile = "figures/markdownBadge.png",
+              mode = 'wb')
+```
+
+[![made-with-Markdown](figures/markdownBadge.png)](https://commonmark.org)
+
+<!-- if knitting to pdf remember to add the pandoc_args: ["--extract-media", "."] option to yml in order to get the badge images -->
+
+#### Authors:
+
+`r paste(as.character(SpaDES.core::moduleMetadata(module = "scfmEscape", path = '..')$authors), sep = ', ')`
+<!-- ideally separate authors with new lines, '\n' not working -->
+
+## Module Overview
+
+### Module summary
+
+'Escapes' fire(s) from an initial set of loci returned by `scfmIgnition` and prepares the results for use by `scfmSpread`.
+
+### Module inputs and parameters
+
+Table \@ref(tab:moduleInputs-scfmEscape) shows the full list of module inputs.
+
+```{r moduleInputs-scfmEscape, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_inputs <- SpaDES.core::moduleInputs("scfmEscape", "..")
+knitr::kable(df_inputs,
+             caption = "List of (ref:scfmEscape) input objects and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+Table \@ref(tab:moduleParams-scfmEscape) shows the full list of module parameters.
+
+```{r moduleParams-scfmEscape, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_params <- SpaDES.core::moduleParams("scfmEscape", "..")
+knitr::kable(df_params, caption = "List of (ref:scfmEscape) parameters and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+### Module outputs
+
+Description of the module outputs (Table \@ref(tab:moduleOutputs-scfmEscape)).
+
+```{r moduleOutputs-scfmEscape, echo = FALSE, eval = TRUE, message = FALSE, warning = FALSE}
+df_outputs <- SpaDES.core::moduleOutputs("scfmEscape", "..")
+knitr::kable(df_outputs, caption = "List of (ref:scfmEscape) outputs and their description.") |>
+  kableExtra::kable_styling(latex_options = "scale_down", full_width = TRUE)
+```
+
+### Links to other modules
+
+Intended to be run with the `scfm` suite of modules found at <https://github.com/PredictiveEcology/scfm>:
+
+- `ageModule` (optional)
+- `scfmDriver`
+- `scfmEscape`
+- `scfmIgnition`
+- `scfmLandcoverInit`
+- `scfmRegime`
+- `scfmSpread`
+
+### Getting help
+
+<https://github.com/PredictiveEcology/scfm/issues>
