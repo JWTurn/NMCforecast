@@ -93,7 +93,8 @@ out <- SpaDES.project::setupProject(
   rasterToMatch_SSUD = rasterToMatchLarge,
 
   rasterToMatch = {
-    reproducible::postProcess(rasterToMatchLarge, cropTo = studyAreaLarge, maskTo = studyAreaLarge)
+    rasterToMatchLarge
+    #reproducible::postProcess(rasterToMatchLarge, studyArea)
   },
 
   rasterToMatchCoarse = {
@@ -139,37 +140,22 @@ out <- SpaDES.project::setupProject(
     # save to disk objects, specified years
 
     rbind(
+
       data.frame(
-        objectName = rep('pde', 1),
-        saveTime = c(2020),
-        fun = rep("saveRDS", 1),
-        file = paste0(rep('pde', 1), rep(".RDS", 1))
+        objectName = rep('simPde', 1),
+        saveTime = c(2022),
+        fun = rep("writeRaster", 1),
+        file = paste0(rep(paste0('simPde_', .studyAreaName), 1), rep(".tif", 1))
         ,
-        package = rep("base", 1)
+        package = rep("terra", 1)
       ),
       data.frame(
-        objectName = rep('pdeMap', 1),
-        saveTime = c(2020),
-        fun = rep("saveRDS", 1),
-        file = paste0(rep('pdeMap', 1), rep(".RDS", 1))
+        objectName = rep('simPdeMap', 1),
+        saveTime = c(2022),
+        fun = rep("writeRaster", 1),
+        file = paste0(rep(paste0('simPdeMap_', .studyAreaName), 1), rep(".tif", 1))
         ,
-        package = rep("base", 1)
-      ),
-      data.frame(
-        objectName = rep('simPde', 12),
-        saveTime = append(2022, seq(from = 2025, to = 2075, by = 5)),
-        fun = rep("saveRDS", 12),
-        file = paste0(rep('pde', 12), rep(".RDS", 12))
-        ,
-        package = rep("base", 12)
-      ),
-      data.frame(
-        objectName = rep('simPdeMap', 12),
-        saveTime = append(2022, seq(from = 2025, to = 2075, by = 5)),
-        fun = rep("saveRDS", 12),
-        file = paste0(rep('pdeMap', 12), rep(".RDS", 12))
-        ,
-        package = rep("base", 12)
+        package = rep("terra", 1)
       )
       #,
 
