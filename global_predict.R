@@ -8,6 +8,8 @@ getOrUpdatePkg(c("Require", "SpaDES.project"), c("1.0.1.9024", "1.0.1.9000")) # 
 projPath = "~/git-local/NMCforecast"
 reproducibleInputsPath = "~/git-local/reproducibleInputs"
 
+iter = 1
+
 out <- SpaDES.project::setupProject(
   Restart = TRUE,
   useGit = 'JWTurn',
@@ -37,7 +39,7 @@ out <- SpaDES.project::setupProject(
   params = list(
     .globals = list(
       .plots = c("png"),
-      .studyAreaName=  "NMCsimp",
+      .studyAreaName=  "NMCsimp1",
       #jurisdiction = c("NMC"),
       outputFolderID = 'https://drive.google.com/drive/folders/1E46xkqApeXGJy5x8_mwu7z7RgZmkNN88?usp=share_link',
       .useCache = c(".inputObjects"),
@@ -72,29 +74,35 @@ out <- SpaDES.project::setupProject(
                                             destinationPath = 'inputs') |>
                     terra::project("EPSG:3978"),
 
-  studyArea = studyAreaLarge,
+  studyArea = terra::buffer(studyAreaLarge, -2000),
 
   studyAreaCalibration = studyAreaLarge,
 
-  modelLand = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1EJ9QX-61YkL4X26RggNNw_xofzJnbbWm/view?usp=share_link',
+  modelLand = {
+    land <- reproducible::prepInputs(url = 'https://drive.google.com/file/d/1EJ9QX-61YkL4X26RggNNw_xofzJnbbWm/view?usp=share_link',
                                        fun = 'terra::rast',
-                                       destinationPath = 'outputs')  |>
-    terra::project("EPSG:3978")|>
-    reproducible::Cache(),
+                                       destinationPath = 'outputs')
+    # getting rid of back fill for sim
+    land$timeSinceFire <- terra::subst(land$ts_fires_250, from = 200, to = NA)
+    terra::project(land, "EPSG:3978")|>
+      reproducible::Cache()
+    },
 
 
   rasterToMatchLarge = {
     rtml <- modelLand[[1]]
     rtml[] <- 1
-    #rtml[] <- 1
     terra::mask(rtml, studyAreaLarge)
   },
 
   rasterToMatch_SSUD = rasterToMatchLarge,
 
   rasterToMatch = {
-    rasterToMatchLarge
-    #reproducible::postProcess(rasterToMatchLarge, studyArea)
+    # rtm <- modelLand[[1]]
+    # rtm[] <- 1
+    # terra::mask(rtm, studyArea)
+    #rasterToMatchLarge
+    reproducible::postProcess(rasterToMatchLarge, cropTo = studyArea, maskTo = studyArea)
   },
 
   rasterToMatchCoarse = {
@@ -145,7 +153,7 @@ out <- SpaDES.project::setupProject(
         objectName = rep('simPde', 1),
         saveTime = c(2022),
         fun = rep("writeRaster", 1),
-        file = paste0(rep(paste0('simPde_', .studyAreaName), 1), rep(".tif", 1))
+        file = paste0(rep(paste0('simPde_', iter), 1), rep(".tif", 1))
         ,
         package = rep("terra", 1)
       ),
@@ -153,7 +161,7 @@ out <- SpaDES.project::setupProject(
         objectName = rep('simPdeMap', 1),
         saveTime = c(2022),
         fun = rep("writeRaster", 1),
-        file = paste0(rep(paste0('simPdeMap_', .studyAreaName), 1), rep(".tif", 1))
+        file = paste0(rep(paste0('simPdeMap_', iter), 1), rep(".tif", 1))
         ,
         package = rep("terra", 1)
       )
