@@ -15,7 +15,8 @@ out <- SpaDES.project::setupProject(
   useGit = 'JWTurn',
   updateRprofile = TRUE,
   #overwrite = TRUE,
-  paths = list(projectPath =  projPath
+  paths = list(projectPath =  projPath,
+               cachePath = file.path('cache')
                #"packagePath" = file.path("packages", Require:::versionMajorMinor())
   ),
   options = options(spades.allowInitDuringSimInit = TRUE,
