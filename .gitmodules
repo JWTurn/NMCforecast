@@ -13,3 +13,12 @@
 [submodule "modules/caribou_SSUD"]
 	path = modules/caribou_SSUD
 	url = https://github.com/JWTurn/caribou_SSUD
+[submodule "modules/climateYear"]
+	path = modules/climateYear
+	url = https://github.com/PredictiveEcology/climateYear
+[submodule "modules/canClimateData"]
+	path = modules/canClimateData
+	url = https://github.com/PredictiveEcology/canClimateData
+[submodule "modules/gmcsDataPrep"]
+	path = modules/gmcsDataPrep
+	url = https://github.com/ianmseddy/gmcsDataPrep
