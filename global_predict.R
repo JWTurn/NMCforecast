@@ -5,10 +5,13 @@ getOrUpdatePkg(c("Require", "SpaDES.project"), c("1.0.1.9024", "1.0.1.9000")) # 
 #Require::Install("PredictiveEcology/SpaDES.core@development")
 #Require::Install("PredictiveEcology/reproducible@development")
 
-projPath = "~/git-local/NMCforecast"
-reproducibleInputsPath = "~/git-local/reproducibleInputs"
+projPath = "~/git/NMCforecast"
+reproducibleInputsPath = "~/git/reproducibleInputs"
+
+lapply(dir('R', '*.R', full.names = TRUE), source)
 
 iter = 1
+ecozoneName <- c('Montane Cordillera', 'Taiga Plain')
 
 out <- SpaDES.project::setupProject(
   Restart = TRUE,
@@ -16,13 +19,15 @@ out <- SpaDES.project::setupProject(
   updateRprofile = TRUE,
   #overwrite = TRUE,
   paths = list(projectPath =  projPath,
-               cachePath = file.path('cache')
+               cachePath = '~/git/NMCforecast/cache'#file.path('cache')
                #"packagePath" = file.path("packages", Require:::versionMajorMinor())
   ),
-  options = options(spades.allowInitDuringSimInit = TRUE,
+  options = options('"~/git/googledriveAuthentication.R',
+    spades.allowInitDuringSimInit = TRUE,
                     spades.allowSequentialCaching = TRUE,
                     spades.moduleCodeChecks = FALSE,
                     spades.recoveryMode = 1,
+                    reproducible.cachePath = '~/git/NMCforecast/cache',
                     reproducible.inputPaths = reproducibleInputsPath,
                     reproducible.useMemoise = TRUE
                     ,reproducible.cloudFolderID = 'https://drive.google.com/drive/folders/1lDVP0G1FFft5WJgnKBLPPlkTXPsU04hr?usp=share_link'
@@ -31,6 +36,10 @@ out <- SpaDES.project::setupProject(
     "PredictiveEcology/Biomass_borealDataPrep@development",
     "PredictiveEcology/Biomass_core@development",
     "PredictiveEcology/Biomass_regeneration@master",
+    # climate sensitive
+    "PredictiveEcology/climateYear@development",
+    "PredictiveEcology/canClimateData@development",
+    "ianmseddy/gmcsDataPrep@development",
     file.path("PredictiveEcology/scfm@development/modules",
               c("scfmDataPrep",
                 "scfmIgnition", "scfmEscape", "scfmSpread",
@@ -55,6 +64,19 @@ out <- SpaDES.project::setupProject(
       targetN = 3000,
       .useParallelFireRegimePolys = TRUE
     ),
+
+    gmcsDataPrep = list(
+      minTrees = 10,
+      minMeasures = 2,
+      QCaction = c(2),
+      minDBH = 9.1,
+      PSPdataTypes = "all",
+      PSPperiod = c(1950, 2020),
+    ),
+    Biomass_core = list(
+      growthAndMortalityDrivers = "LandR.CS",  #use LandR.CS to predict growth and mortality cs
+      gmcsGrowthLimits = c(33,300)), #use limits to prevent extreme growth, if desired
+
 
     caribou_SSUD = list(
       simulationProcess = "dynamic",
@@ -106,9 +128,9 @@ out <- SpaDES.project::setupProject(
     reproducible::postProcess(rasterToMatchLarge, cropTo = studyArea, maskTo = studyArea)
   },
 
-  rasterToMatchCoarse = {
-    terra::aggregate(rasterToMatch, 2)
-  },
+  # rasterToMatchCoarse = {
+  #   terra::aggregate(rasterToMatch, 2)
+  # },
 
   rasterToMatchCalibration = rasterToMatchLarge,
 
@@ -125,6 +147,34 @@ out <- SpaDES.project::setupProject(
     sppEquiv
   },
 
+  studyAreaPSP = {
+    #Julie we would change this object to be northern BC/AB
+    ecozones <- reproducible::prepInputs(url = "https://sis.agr.gc.ca/cansis/nsdb/ecostrat/zone/ecozone_shp.zip",
+                                         destinationPath = "inputs")
+    ecozones <- ecozones[ecozones$ZONE_NAME %in% ecozoneName,]
+    ecozones
+  },
+
+  climateVariables = c(makeClimateVariablesForModule(unname(climateVariablesForGMCS), type= "projected", years = 2020:2100),
+                       makeClimateVariablesForModule(unname(climateVariablesForGMCS), type = "historical",
+                                                     years = "1991_2020", yearType = "historical_period")),
+
+
+  climateVariablesForGMCS = c("a_MAT" = "MAT", "a_CMI" = "CMI", #strong support for inclusion - e.g Luo and Chen
+                              "aMAP" = "MAP", #weak correlation with other variables, so include (only 0.66 with summer precip.)
+                              # "a_MSP" = "MSP", #"a_FFP" = "FFP" #summer precip, frost-free period,
+                              # "a_AHM" = "AHM",
+                              #apparently seasonal normals aren't available :( might be fixed soon
+                              "a_DD5" = "DD5", "aDD_0" = "DD_0", #
+                              "a_SHM" = "SHM"),
+
+  cceArgs = list(quote(historicalClimateRasters),#need for normals
+                 quote(gcsModel),
+                 quote(mcsModel),
+                 quote(climateVariablesForGMCS),
+                 quote(currentClimateRasters)),
+
+
   iSSAmodels = reproducible::prepInputs(url = 'https://drive.google.com/file/d/1O_2_pP-9ZRqNqFxief1TIAcjDGdJTAfW/view?usp=share_link',
                                     fun = 'readRDS',
                                     destinationPath = 'outputs') |>
@@ -134,49 +184,50 @@ out <- SpaDES.project::setupProject(
   studyAreaCaribou = {
     sa <- reproducible::prepInputs(url = 'https://drive.google.com/file/d/11nFGKHw36Dtxjd5xS-nExuziOB26VRoK/view?usp=share_link',
                                    fun = 'terra::vect',
-                                   destinationPath = 'inputs') |>
+                                   destinationPath = 'inputs',
+                                   targetFile = 'clean_NMC_20kmBuff.shp') |>
           terra::project("EPSG:3978")
     terra::fillHoles(sa, inverse = F)}
   ,
 
-  studyArea_juris = list(NMC = studyAreaLarge),
+  studyArea_juris = list(NMC = studyAreaLarge)#,
   # reproducible::prepInputs(url = 'https://drive.google.com/file/d/1KcJ9oPTEsWYZAX4rHi2p84y0LjLhjtvJ/view?usp=share_link',
   #                                          fun = 'readRDS',
   #                                          destinationPath = 'outputs')
 
   # OUTPUTS TO SAVE -----------------------
-  outputs = {
-    # save to disk objects, specified years
-
-    rbind(
-
-      data.frame(
-        objectName = rep('simPde', 1),
-        saveTime = c(2022),
-        fun = rep("writeRaster", 1),
-        file = paste0(rep(paste0('simPde_', iter), 1), rep(".tif", 1))
-        ,
-        package = rep("terra", 1)
-      ),
-      data.frame(
-        objectName = rep('simPdeMap', 1),
-        saveTime = c(2022),
-        fun = rep("writeRaster", 1),
-        file = paste0(rep(paste0('simPdeMap_', iter), 1), rep(".tif", 1))
-        ,
-        package = rep("terra", 1)
-      )
-      #,
-
-      # data.frame(
-      #   objectName = rep('timeSinceFire', 12),
-      #   saveTime = seq(from = 2025, to = 2075, by = 5),
-      #   fun = rep("writeRaster", 12),
-      #   file = paste0(rep('timeSinceFire', 12), rep(".tif", 12)),
-      #   package = rep("terra", 12)
-      # )
-    )
-  }
+  # outputs = {
+  #   # save to disk objects, specified years
+  #
+  #   rbind(
+  #
+  #     data.frame(
+  #       objectName = rep('simPde', 1),
+  #       saveTime = c(2022),
+  #       fun = rep("writeRaster", 1),
+  #       file = paste0(rep(paste0('simPde_', iter), 1), rep(".tif", 1))
+  #       ,
+  #       package = rep("terra", 1)
+  #     ),
+  #     data.frame(
+  #       objectName = rep('simPdeMap', 1),
+  #       saveTime = c(2022),
+  #       fun = rep("writeRaster", 1),
+  #       file = paste0(rep(paste0('simPdeMap_', iter), 1), rep(".tif", 1))
+  #       ,
+  #       package = rep("terra", 1)
+  #     )
+  #     #,
+  #
+  #     # data.frame(
+  #     #   objectName = rep('timeSinceFire', 12),
+  #     #   saveTime = seq(from = 2025, to = 2075, by = 5),
+  #     #   fun = rep("writeRaster", 12),
+  #     #   file = paste0(rep('timeSinceFire', 12), rep(".tif", 12)),
+  #     #   package = rep("terra", 12)
+  #     # )
+  #   )
+  # }
 
 )
 
